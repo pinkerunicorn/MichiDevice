@@ -239,10 +239,18 @@ class Michi extends IPSModule
         }
         
         $hide = !$state;
-        IPS_SetHidden($this->GetIDForIdent('Dimmer'), $hide);
-        IPS_SetHidden($this->GetIDForIdent('Model'), $hide);
-        IPS_SetHidden($this->GetIDForIdent('Version'), $hide);
-        IPS_SetHidden($this->GetIDForIdent('IP'), $hide);
-        IPS_SetHidden($this->GetIDForIdent('MAC'), $hide);
+        $this->SetHiddenSafe('Dimmer', $hide);
+        $this->SetHiddenSafe('Model', $hide);
+        $this->SetHiddenSafe('Version', $hide);
+        $this->SetHiddenSafe('IP', $hide);
+        $this->SetHiddenSafe('MAC', $hide);
+    }
+
+    private function SetHiddenSafe(string $ident, bool $hidden): void
+    {
+        $id = @$this->GetIDForIdent($ident);
+        if ($id !== false && $id > 0) {
+            IPS_SetHidden($id, $hidden);
+        }
     }
 }
