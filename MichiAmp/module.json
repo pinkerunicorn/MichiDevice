@@ -1,0 +1,11 @@
+{
+    "id": "{DE13D2F7-C1E6-49AB-A633-8FE587BCE6D2}",
+    "name": "Michi Amplifier",
+    "type": 3,
+    "vendor": "Rotel",
+    "aliases": ["Michi M8", "Michi S5", "Michi"],
+    "parentRequirements": ["{3CFF0FD9-E306-41DB-9B5A-9D06D38576C3}"],
+    "childRequirements": [],
+    "implemented": ["{E3A2F6E3-13D4-4061-AC2B-EE4A0208AF5C}"],
+    "prefix": "MICHI"
+}

@@ -1,0 +1,30 @@
+{
+    "elements": [
+        {
+            "type": "ValidationTextBox",
+            "name": "Host",
+            "caption": "IP-Adresse des Michi (M8/S5)"
+        },
+        {
+            "type": "NumberSpinner",
+            "name": "Port",
+            "caption": "Port (Standard: 9596)",
+            "minimum": 1,
+            "maximum": 65535
+        },
+        {
+            "type": "NumberSpinner",
+            "name": "UpdateInterval",
+            "caption": "Abfrage-Intervall (Sekunden, 0 = Aus)",
+            "minimum": 0,
+            "maximum": 3600
+        }
+    ],
+    "actions": [
+        {
+            "type": "Button",
+            "label": "Alle Werte aktualisieren",
+            "onClick": "MICHI_RequestStatus($id);"
+        }
+    ]
+}

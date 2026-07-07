@@ -1,0 +1,184 @@
+<?php
+
+declare(strict_types=1);
+
+class MichiAmplifier extends IPSModule
+{
+    public function Create(): void
+    {
+        parent::Create();
+
+        $this->RegisterPropertyString('Host', '');
+        $this->RegisterPropertyInteger('Port', 9596);
+        $this->RegisterPropertyInteger('UpdateInterval', 60);
+
+        // Attribut für den Empfangspuffer
+        $this->RegisterAttributeString('ReceiveBuffer', '');
+
+        // Timer
+        $this->RegisterTimer('UpdateTimer', 0, 'MICHI_RequestStatus($_IPS[\'TARGET\']);');
+
+        // Variablen registrieren
+        $this->RegisterVariableBoolean('Power', 'Power', '~Switch', 10);
+        $this->EnableAction('Power');
+
+        $this->RegisterVariableInteger('Dimmer', 'Display Helligkeit (0-4)', '', 20);
+        $this->EnableAction('Dimmer');
+
+        $this->RegisterVariableString('Model', 'Modell', '', 30);
+        $this->RegisterVariableString('Version', 'Software Version', '', 40);
+        $this->RegisterVariableString('IP', 'IP-Adresse', '', 50);
+        $this->RegisterVariableString('MAC', 'MAC-Adresse', '', 60);
+    }
+
+    public function ApplyChanges(): void
+    {
+        parent::ApplyChanges();
+
+        // Verbindung (Parent) konfigurieren
+        $this->SetParentConfig();
+
+        // Timer setzen
+        $interval = $this->ReadPropertyInteger('UpdateInterval');
+        if ($interval > 0) {
+            $this->SetTimerInterval('UpdateTimer', $interval * 1000);
+            $this->RequestStatus();
+        } else {
+            $this->SetTimerInterval('UpdateTimer', 0);
+        }
+    }
+
+    private function SetParentConfig(): void
+    {
+        $host = $this->ReadPropertyString('Host');
+        $port = $this->ReadPropertyInteger('Port');
+
+        if ($host == '') {
+            return; // Nichts zu tun
+        }
+
+        // Wir erzwingen, dass ein Parent (Client Socket) existiert
+        $this->RequireParent("{3CFF0FD9-E306-41DB-9B5A-9D06D38576C3}");
+        
+        $parentId = $this->GetConnectionID();
+        if ($parentId > 0) {
+            // Konfiguration anpassen, falls abweichend
+            if (IPS_GetProperty($parentId, 'Host') != $host || IPS_GetProperty($parentId, 'Port') != $port) {
+                IPS_SetProperty($parentId, 'Host', $host);
+                IPS_SetProperty($parentId, 'Port', $port);
+                IPS_SetProperty($parentId, 'Open', true);
+                IPS_ApplyChanges($parentId);
+            }
+        }
+    }
+
+    private function GetConnectionID(): int
+    {
+        $instance = IPS_GetInstance($this->InstanceID);
+        return $instance['ConnectionID'];
+    }
+
+    public function RequestAction($Ident, $Value)
+    {
+        switch ($Ident) {
+            case 'Power':
+                if ($Value) {
+                    $this->SendCommand("power_on");
+                } else {
+                    $this->SendCommand("power_off");
+                }
+                break;
+            case 'Dimmer':
+                // Wert zwischen 0 und 4
+                $val = max(0, min(4, (int)$Value));
+                $this->SendCommand("dimmer_" . $val);
+                break;
+        }
+    }
+
+    public function RequestStatus(): void
+    {
+        $this->SendCommand("power?");
+        $this->SendCommand("dimmer?");
+        $this->SendCommand("version?");
+        $this->SendCommand("model?");
+        $this->SendCommand("ip?");
+        $this->SendCommand("mac?");
+    }
+
+    private function SendCommand(string $command): void
+    {
+        $parentId = $this->GetConnectionID();
+        if ($parentId > 0 && IPS_GetInstance($parentId)['InstanceStatus'] == 102) {
+            $json = json_encode([
+                "DataID" => "{79827379-F36E-4ADA-8A95-5F8D1DC92FA9}",
+                "Buffer" => utf8_encode($command . "!")
+            ]);
+            $this->SendDataToParent($json);
+            $this->SendDebug("SEND", $command . "!", 0);
+        }
+    }
+
+    public function ReceiveData($JSONString)
+    {
+        $data = json_decode($JSONString);
+        $buffer = $this->ReadAttributeString('ReceiveBuffer');
+        
+        // Empfangene Daten an den Puffer anhängen
+        $newData = utf8_decode($data->Buffer);
+        $buffer .= $newData;
+        
+        $this->SendDebug("RECV_RAW", $newData, 0);
+
+        // Nachrichten extrahieren (Ende-Zeichen ist $)
+        $pos = strpos($buffer, '$');
+        while ($pos !== false) {
+            $msg = substr($buffer, 0, $pos);
+            $buffer = substr($buffer, $pos + 1);
+            
+            $this->ProcessMessage($msg);
+            
+            $pos = strpos($buffer, '$');
+        }
+
+        // Rest im Puffer speichern
+        $this->WriteAttributeString('ReceiveBuffer', $buffer);
+    }
+
+    private function ProcessMessage(string $msg): void
+    {
+        $this->SendDebug("MESSAGE", $msg, 0);
+
+        // Die Nachrichten haben das Format: variable=wert
+        $parts = explode('=', $msg, 2);
+        if (count($parts) != 2) return;
+
+        $key = trim($parts[0]);
+        $value = trim($parts[1]);
+
+        switch (strtolower($key)) {
+            case 'power':
+                if ($value === 'on') {
+                    $this->SetValue('Power', true);
+                } elseif ($value === 'standby') {
+                    $this->SetValue('Power', false);
+                }
+                break;
+            case 'dimmer':
+                $this->SetValue('Dimmer', (int)$value);
+                break;
+            case 'version':
+                $this->SetValue('Version', $value);
+                break;
+            case 'model':
+                $this->SetValue('Model', $value);
+                break;
+            case 'ip':
+                $this->SetValue('IP', $value);
+                break;
+            case 'mac':
+                $this->SetValue('MAC', $value);
+                break;
+        }
+    }
+}
