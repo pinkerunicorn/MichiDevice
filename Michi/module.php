@@ -45,6 +45,13 @@ class Michi extends IPSModule
         } else {
             $this->SetTimerInterval('UpdateTimer', 0);
         }
+
+        // Statische Infos (Version, Modell, IP, MAC) nur einmalig beim Start abfragen
+        // Der Michi antwortet darauf praktischerweise auch im Standby!
+        $this->SendCommand("version?");
+        $this->SendCommand("model?");
+        $this->SendCommand("ip?");
+        $this->SendCommand("mac?");
     }
 
 
@@ -95,10 +102,6 @@ class Michi extends IPSModule
 
         $this->SendCommand("dimmer?");
         $this->SendCommand("source?");
-        $this->SendCommand("version?");
-        $this->SendCommand("model?");
-        $this->SendCommand("ip?");
-        $this->SendCommand("mac?");
     }
 
     private function SendCommand(string $command): void
@@ -119,8 +122,10 @@ class Michi extends IPSModule
         $data = json_decode($JSONString);
         $newData = utf8_decode($data->Buffer);
         
-        // Wenn wir irgendwas anderes als nur "power=on" empfangen, lebt er wirklich!
-        if (strpos(strtolower($newData), 'power=') === false) {
+        $lowerData = strtolower($newData);
+        
+        // Wenn wir dimmer oder source empfangen, ist der Michi definitiv an!
+        if (strpos($lowerData, 'dimmer=') !== false || strpos($lowerData, 'source=') !== false) {
             $this->SetTimerInterval('ResponseTimeout', 0);
             
             // Wenn er auf unsere Fragen antwortet, ist er definitiv an!
