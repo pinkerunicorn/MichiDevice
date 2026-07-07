@@ -89,11 +89,12 @@ class Michi extends IPSModule
             }
         }
 
-        // Starte Timeout-Timer (3 Sekunden)
+        // Starte Timeout-Timer (3 Sekunden). Wenn der Michi aus ist, ignoriert er
+        // alle folgenden Befehle. (power? senden wir absichtlich nicht, da er hier lügt)
         $this->SetTimerInterval('ResponseTimeout', 3000);
 
-        $this->SendCommand("power?");
         $this->SendCommand("dimmer?");
+        $this->SendCommand("source?");
         $this->SendCommand("version?");
         $this->SendCommand("model?");
         $this->SendCommand("ip?");
@@ -115,14 +116,20 @@ class Michi extends IPSModule
 
     public function ReceiveData($JSONString)
     {
-        // Wir haben eine Antwort erhalten, also ist der Michi wach. Timeout abbrechen!
-        $this->SetTimerInterval('ResponseTimeout', 0);
-
         $data = json_decode($JSONString);
-        $buffer = $this->ReadAttributeString('ReceiveBuffer');
-        
-        // Empfangene Daten an den Puffer anhängen
         $newData = utf8_decode($data->Buffer);
+        
+        // Wenn wir irgendwas anderes als nur "power=on" empfangen, lebt er wirklich!
+        if (strpos(strtolower($newData), 'power=') === false) {
+            $this->SetTimerInterval('ResponseTimeout', 0);
+            
+            // Wenn er auf unsere Fragen antwortet, ist er definitiv an!
+            if (!$this->GetValue('Power')) {
+                $this->SetValue('Power', true);
+            }
+        }
+
+        $buffer = $this->ReadAttributeString('ReceiveBuffer');
         $buffer .= $newData;
         
         $this->SendDebug("RECV_RAW", $newData, 0);
