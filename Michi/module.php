@@ -54,13 +54,24 @@ class Michi extends IPSModule
                 ]);
             }
 
-            IPS_SetVariableCustomPresentation($this->GetIDForIdent('Dimmer'), [
-                'ICON'         => 'Bulb',
-                'MIN'          => 0,
-                'MAX'          => 100,
-                'STEP'         => 25,
-                'SUFFIX'       => '%'
-            ]);
+            if (defined('VARIABLE_PRESENTATION_SLIDER')) {
+                IPS_SetVariableCustomPresentation($this->GetIDForIdent('Dimmer'), [
+                    'PRESENTATION' => VARIABLE_PRESENTATION_SLIDER,
+                    'ICON'         => 'Bulb',
+                    'MIN'          => 0,
+                    'MAX'          => 100,
+                    'STEP'         => 25,
+                    'SUFFIX'       => '%'
+                ]);
+            } else {
+                IPS_SetVariableCustomPresentation($this->GetIDForIdent('Dimmer'), [
+                    'ICON'         => 'Bulb',
+                    'MIN'          => 0,
+                    'MAX'          => 100,
+                    'STEP'         => 25,
+                    'SUFFIX'       => '%'
+                ]);
+            }
             
             // No custom PRESENTATION for strings, let Symcon use default String display
         }
