@@ -213,9 +213,9 @@ class Michi extends IPSModule
         switch (strtolower($key)) {
             case 'power':
                 if ($value === 'on') {
-                    $this->SetValue('Power', true);
+                    $this->UpdatePowerState(true);
                 } elseif ($value === 'standby') {
-                    $this->SetValue('Power', false);
+                    $this->UpdatePowerState(false);
                 }
                 break;
             case 'dimmer':
