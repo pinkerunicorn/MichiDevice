@@ -46,6 +46,9 @@ class Michi extends IPSModule
             $this->SetTimerInterval('UpdateTimer', 0);
         }
 
+        // Initiale Sichtbarkeit der Variablen setzen
+        $this->UpdatePowerState($this->GetValue('Power'));
+
         // Statische Infos (Version, Modell, IP, MAC) nur einmalig beim Start abfragen
         // Der Michi antwortet darauf praktischerweise auch im Standby!
         $this->SendCommand("version?");
@@ -70,7 +73,7 @@ class Michi extends IPSModule
                 } else {
                     $this->SendCommand("power_off");
                 }
-                $this->SetValue($Ident, $Value);
+                $this->UpdatePowerState($Value);
                 break;
             case 'Dimmer':
                 // Google Home liefert 0-100%. Michi erwartet 0 (am hellsten) bis 4 (am dunkelsten).
@@ -130,7 +133,7 @@ class Michi extends IPSModule
             
             // Wenn er auf unsere Fragen antwortet, ist er definitiv an!
             if (!$this->GetValue('Power')) {
-                $this->SetValue('Power', true);
+                $this->UpdatePowerState(true);
             }
         }
 
@@ -200,8 +203,22 @@ class Michi extends IPSModule
         $this->SetTimerInterval('ResponseTimeout', 0);
         
         if ($this->GetValue('Power')) {
-            $this->SetValue('Power', false);
+            $this->UpdatePowerState(false);
             $this->SendDebug("TIMEOUT", "Keine Antwort erhalten. Setze Power auf Aus.", 0);
         }
+    }
+
+    private function UpdatePowerState(bool $state): void
+    {
+        if ($this->GetValue('Power') !== $state) {
+            $this->SetValue('Power', $state);
+        }
+        
+        $hide = !$state;
+        IPS_SetHidden($this->GetIDForIdent('Dimmer'), $hide);
+        IPS_SetHidden($this->GetIDForIdent('Model'), $hide);
+        IPS_SetHidden($this->GetIDForIdent('Version'), $hide);
+        IPS_SetHidden($this->GetIDForIdent('IP'), $hide);
+        IPS_SetHidden($this->GetIDForIdent('MAC'), $hide);
     }
 }
