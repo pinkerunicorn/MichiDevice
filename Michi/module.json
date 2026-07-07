@@ -4,8 +4,8 @@
     "type": 3,
     "vendor": "Rotel",
     "aliases": [],
-    "parentRequirements": ["{3CFF0FD9-E306-41DB-9B5A-9D06D38576C3}"],
+    "parentRequirements": ["{79827379-F36E-4ADA-8A95-5F8D1DC92FA9}"],
     "childRequirements": [],
-    "implemented": ["{E3A2F6E3-13D4-4061-AC2B-EE4A0208AF5C}"],
+    "implemented": [],
     "prefix": "MICHI"
 }
