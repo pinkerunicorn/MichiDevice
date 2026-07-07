@@ -20,7 +20,7 @@ class Michi extends IPSModule
         $this->RegisterVariableBoolean('Power', 'Power', '~Switch', 10);
         $this->EnableAction('Power');
 
-        $this->RegisterVariableInteger('Dimmer', 'Display Helligkeit (0-4)', '', 20);
+        $this->RegisterVariableInteger('Dimmer', 'Display Helligkeit', '~Intensity.100', 20);
         $this->EnableAction('Dimmer');
 
         $this->RegisterVariableString('Model', 'Modell', '', 30);
@@ -64,8 +64,9 @@ class Michi extends IPSModule
                 }
                 break;
             case 'Dimmer':
-                // Wert zwischen 0 und 4
-                $val = max(0, min(4, (int)$Value));
+                // Google Home liefert 0-100%. Michi erwartet 0 (am hellsten) bis 4 (am dunkelsten).
+                // 100% -> 0, 75% -> 1, 50% -> 2, 25% -> 3, 0% -> 4
+                $val = 4 - (int)round((max(0, min(100, (int)$Value))) / 25);
                 $this->SendCommand("dimmer_" . $val);
                 break;
         }
@@ -140,7 +141,9 @@ class Michi extends IPSModule
                 }
                 break;
             case 'dimmer':
-                $this->SetValue('Dimmer', (int)$value);
+                // Michi liefert 0 (am hellsten) bis 4 (am dunkelsten). Umrechnung in 0-100%
+                $symconVal = (4 - (int)$value) * 25;
+                $this->SetValue('Dimmer', $symconVal);
                 break;
             case 'version':
                 $this->SetValue('Version', $value);
