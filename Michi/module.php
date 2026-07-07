@@ -35,13 +35,26 @@ class Michi extends IPSModule
         parent::ApplyChanges();
 
         if (function_exists('IPS_SetVariableCustomPresentation')) {
-            IPS_SetVariableCustomPresentation($this->GetIDForIdent('Power'), [
-                'PRESENTATION' => 1, // VARIABLE_PRESENTATION_SWITCH
-                'ICON'         => 'Power'
-            ]);
+            // Self-Healing: Reset all corrupted presentations
+            @IPS_SetVariableCustomPresentation($this->GetIDForIdent('Power'), []);
+            @IPS_SetVariableCustomPresentation($this->GetIDForIdent('Dimmer'), []);
+            @IPS_SetVariableCustomPresentation($this->GetIDForIdent('Model'), []);
+            @IPS_SetVariableCustomPresentation($this->GetIDForIdent('Version'), []);
+            @IPS_SetVariableCustomPresentation($this->GetIDForIdent('IP'), []);
+            @IPS_SetVariableCustomPresentation($this->GetIDForIdent('MAC'), []);
+
+            if (defined('VARIABLE_PRESENTATION_SWITCH')) {
+                IPS_SetVariableCustomPresentation($this->GetIDForIdent('Power'), [
+                    'PRESENTATION' => VARIABLE_PRESENTATION_SWITCH,
+                    'ICON'         => 'Power'
+                ]);
+            } else {
+                IPS_SetVariableCustomPresentation($this->GetIDForIdent('Power'), [
+                    'ICON'         => 'Power'
+                ]);
+            }
 
             IPS_SetVariableCustomPresentation($this->GetIDForIdent('Dimmer'), [
-                'PRESENTATION' => 4, // VARIABLE_PRESENTATION_SLIDER
                 'ICON'         => 'Bulb',
                 'MIN'          => 0,
                 'MAX'          => 100,
@@ -49,13 +62,7 @@ class Michi extends IPSModule
                 'SUFFIX'       => '%'
             ]);
             
-            $labelConfig = [
-                'PRESENTATION' => 0 // VARIABLE_PRESENTATION_LABEL
-            ];
-            IPS_SetVariableCustomPresentation($this->GetIDForIdent('Model'), $labelConfig);
-            IPS_SetVariableCustomPresentation($this->GetIDForIdent('Version'), $labelConfig);
-            IPS_SetVariableCustomPresentation($this->GetIDForIdent('IP'), $labelConfig);
-            IPS_SetVariableCustomPresentation($this->GetIDForIdent('MAC'), $labelConfig);
+            // No custom PRESENTATION for strings, let Symcon use default String display
         }
 
         // Wir erzwingen, dass ein Parent (Client Socket) existiert
