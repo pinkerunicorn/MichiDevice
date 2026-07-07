@@ -62,18 +62,32 @@ class Michi extends IPSModule
                 } else {
                     $this->SendCommand("power_off");
                 }
+                $this->SetValue($Ident, $Value);
                 break;
             case 'Dimmer':
                 // Google Home liefert 0-100%. Michi erwartet 0 (am hellsten) bis 4 (am dunkelsten).
                 // 100% -> 0, 75% -> 1, 50% -> 2, 25% -> 3, 0% -> 4
                 $val = 4 - (int)round((max(0, min(100, (int)$Value))) / 25);
                 $this->SendCommand("dimmer_" . $val);
+                $this->SetValue($Ident, $Value);
                 break;
         }
     }
 
     public function RequestStatus(): void
     {
+        $parentId = $this->GetConnectionID();
+        if ($parentId > 0) {
+            $status = IPS_GetInstance($parentId)['InstanceStatus'];
+            if ($status != 102) { // 102 = IS_ACTIVE
+                // Socket ist getrennt (Michi ist vermutlich im Deep Standby oder stromlos)
+                if ($this->GetValue('Power')) {
+                    $this->SetValue('Power', false);
+                }
+                return;
+            }
+        }
+
         $this->SendCommand("power?");
         $this->SendCommand("dimmer?");
         $this->SendCommand("version?");
