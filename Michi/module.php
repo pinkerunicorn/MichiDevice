@@ -15,6 +15,7 @@ class Michi extends IPSModule
 
         // Timer
         $this->RegisterTimer('UpdateTimer', 0, 'MICHI_RequestStatus($_IPS[\'TARGET\']);');
+        $this->RegisterTimer('ResponseTimeout', 0, 'MICHI_HandleTimeout($_IPS[\'TARGET\']);');
 
         // Variablen registrieren
         $this->RegisterVariableBoolean('Power', 'Power', '~Switch', 10);
@@ -88,6 +89,9 @@ class Michi extends IPSModule
             }
         }
 
+        // Starte Timeout-Timer (3 Sekunden)
+        $this->SetTimerInterval('ResponseTimeout', 3000);
+
         $this->SendCommand("power?");
         $this->SendCommand("dimmer?");
         $this->SendCommand("version?");
@@ -111,6 +115,9 @@ class Michi extends IPSModule
 
     public function ReceiveData($JSONString)
     {
+        // Wir haben eine Antwort erhalten, also ist der Michi wach. Timeout abbrechen!
+        $this->SetTimerInterval('ResponseTimeout', 0);
+
         $data = json_decode($JSONString);
         $buffer = $this->ReadAttributeString('ReceiveBuffer');
         
@@ -171,6 +178,18 @@ class Michi extends IPSModule
             case 'mac':
                 $this->SetValue('MAC', $value);
                 break;
+        }
+    }
+
+    public function HandleTimeout(): void
+    {
+        // Der Timer hat ausgelöst, was bedeutet, dass der Michi auf unsere Anfrage
+        // nicht geantwortet hat. Er ist im Standby und ignoriert Befehle.
+        $this->SetTimerInterval('ResponseTimeout', 0);
+        
+        if ($this->GetValue('Power')) {
+            $this->SetValue('Power', false);
+            $this->SendDebug("TIMEOUT", "Keine Antwort erhalten. Setze Power auf Aus.", 0);
         }
     }
 }
