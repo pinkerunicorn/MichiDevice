@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-class MichiAmplifier extends IPSModule
+class MichiAmp extends IPSModule
 {
     public function Create(): void
     {
