@@ -8,8 +8,6 @@ class Michi extends IPSModule
     {
         parent::Create();
 
-        $this->RegisterPropertyString('Host', '');
-        $this->RegisterPropertyInteger('Port', 9596);
         $this->RegisterPropertyInteger('UpdateInterval', 60);
 
         // Attribut für den Empfangspuffer
@@ -35,8 +33,8 @@ class Michi extends IPSModule
     {
         parent::ApplyChanges();
 
-        // Verbindung (Parent) konfigurieren
-        $this->SetParentConfig();
+        // Wir erzwingen, dass ein Parent (Client Socket) existiert
+        $this->RequireParent("{3CFF0FD9-E306-41DB-9B5A-9D06D38576C3}");
 
         // Timer setzen
         $interval = $this->ReadPropertyInteger('UpdateInterval');
@@ -48,29 +46,6 @@ class Michi extends IPSModule
         }
     }
 
-    private function SetParentConfig(): void
-    {
-        $host = $this->ReadPropertyString('Host');
-        $port = $this->ReadPropertyInteger('Port');
-
-        if ($host == '') {
-            return; // Nichts zu tun
-        }
-
-        // Wir erzwingen, dass ein Parent (Client Socket) existiert
-        $this->RequireParent("{3CFF0FD9-E306-41DB-9B5A-9D06D38576C3}");
-        
-        $parentId = $this->GetConnectionID();
-        if ($parentId > 0) {
-            // Konfiguration anpassen, falls abweichend
-            if (IPS_GetProperty($parentId, 'Host') != $host || IPS_GetProperty($parentId, 'Port') != $port) {
-                IPS_SetProperty($parentId, 'Host', $host);
-                IPS_SetProperty($parentId, 'Port', $port);
-                IPS_SetProperty($parentId, 'Open', true);
-                IPS_ApplyChanges($parentId);
-            }
-        }
-    }
 
     private function GetConnectionID(): int
     {
