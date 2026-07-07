@@ -1,12 +1,12 @@
-{
-    "id": "{41F93D0F-3575-4C3D-BC35-B9F250B47A83}",
-    "author": "SmartHome",
-    "name": "MichiDevice",
-    "url": "",
-    "compatability": {
-        "version": "6.0"
-    },
-    "version": "1.0",
-    "build": 0,
-    "date": 0
+﻿{
+    "id":  "{41F93D0F-3575-4C3D-BC35-B9F250B47A83}",
+    "author":  "Florian Graßinger",
+    "name":  "MichiDevice",
+    "url":  "",
+    "compatability":  {
+                          "version":  "6.0"
+                      },
+    "version":  "1.0",
+    "build":  0,
+    "date":  0
 }
