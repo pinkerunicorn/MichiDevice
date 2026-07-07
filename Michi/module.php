@@ -18,10 +18,10 @@ class Michi extends IPSModule
         $this->RegisterTimer('ResponseTimeout', 0, 'MICHI_HandleTimeout($_IPS[\'TARGET\']);');
 
         // Variablen registrieren
-        $this->RegisterVariableBoolean('Power', 'Power', '~Switch', 10);
+        $this->RegisterVariableBoolean('Power', 'Power', '', 10);
         $this->EnableAction('Power');
 
-        $this->RegisterVariableInteger('Dimmer', 'Display Helligkeit', '~Intensity.100', 20);
+        $this->RegisterVariableInteger('Dimmer', 'Display Helligkeit', '', 20);
         $this->EnableAction('Dimmer');
 
         $this->RegisterVariableString('Model', 'Modell', '', 30);
@@ -33,6 +33,30 @@ class Michi extends IPSModule
     public function ApplyChanges(): void
     {
         parent::ApplyChanges();
+
+        if (function_exists('IPS_SetVariableCustomPresentation')) {
+            IPS_SetVariableCustomPresentation($this->GetIDForIdent('Power'), [
+                'PRESENTATION' => 1, // VARIABLE_PRESENTATION_SWITCH
+                'ICON'         => 'Power'
+            ]);
+
+            IPS_SetVariableCustomPresentation($this->GetIDForIdent('Dimmer'), [
+                'PRESENTATION' => 4, // VARIABLE_PRESENTATION_SLIDER
+                'ICON'         => 'Bulb',
+                'MIN'          => 0,
+                'MAX'          => 100,
+                'STEP'         => 25,
+                'SUFFIX'       => '%'
+            ]);
+            
+            $labelConfig = [
+                'PRESENTATION' => 0 // VARIABLE_PRESENTATION_LABEL
+            ];
+            IPS_SetVariableCustomPresentation($this->GetIDForIdent('Model'), $labelConfig);
+            IPS_SetVariableCustomPresentation($this->GetIDForIdent('Version'), $labelConfig);
+            IPS_SetVariableCustomPresentation($this->GetIDForIdent('IP'), $labelConfig);
+            IPS_SetVariableCustomPresentation($this->GetIDForIdent('MAC'), $labelConfig);
+        }
 
         // Wir erzwingen, dass ein Parent (Client Socket) existiert
         $this->RequireParent("{3CFF0FD9-E306-41DB-9B5A-9D06D38576C3}");
