@@ -255,4 +255,10 @@ class Michi extends IPSModule
             IPS_SetHidden($id, $hidden);
         }
     }
+
+    protected function LogMessage($Message, $KL_MESSAGE = KL_MESSAGE)
+    {
+        IPS_LogMessage('SmartVillaKunterbunt', 'Michi: ' . $Message);
+    }
 }
+
