@@ -2,10 +2,13 @@
 
 declare(strict_types=1);
 
-class Michi extends IPSModule
+class Michi extends IPSModuleStrict
 {
-    public function Create(): void
+    public function GetCompatibleParents(): string
     {
+        return '["{3CFF0FD9-E306-41DB-9B5A-9D06D38576C3}"]';
+    }
+    public function Create(): void{
         parent::Create();
 
         $this->RegisterPropertyInteger('UpdateInterval', 60);
@@ -30,8 +33,7 @@ class Michi extends IPSModule
         $this->RegisterVariableString('MAC', 'MAC-Adresse', '', 60);
     }
 
-    public function ApplyChanges(): void
-    {
+    public function ApplyChanges(): void{
         parent::ApplyChanges();
 
         // Self-Healing: Reset all corrupted presentations
@@ -61,7 +63,6 @@ class Michi extends IPSModule
         // No custom PRESENTATION for strings, let Symcon use default String display
 
         // Wir erzwingen, dass ein Parent (Client Socket) existiert
-        $this->RequireParent("{3CFF0FD9-E306-41DB-9B5A-9D06D38576C3}");
 
         // Timer setzen
         $interval = $this->ReadPropertyInteger('UpdateInterval');
@@ -90,8 +91,7 @@ class Michi extends IPSModule
         return $instance['ConnectionID'];
     }
 
-    public function RequestAction($Ident, $Value)
-    {
+    public function RequestAction(string $Ident, $Value): void{
         switch ($Ident) {
             case 'Power':
                 if ($Value) {
@@ -146,7 +146,7 @@ class Michi extends IPSModule
         }
     }
 
-    public function ReceiveData($JSONString)
+    public function ReceiveData(string $JSONString): string
     {
         $data = json_decode($JSONString);
         $newData = utf8_decode($data->Buffer);
@@ -181,6 +181,8 @@ class Michi extends IPSModule
 
         // Rest im Puffer speichern
         $this->WriteAttributeString('ReceiveBuffer', $buffer);
+    
+        return "";
     }
 
     private function ProcessMessage(string $msg): void
@@ -256,9 +258,10 @@ class Michi extends IPSModule
         }
     }
 
-    protected function LogMessage($Message, $Type)
+    protected function LogMessage(string $Message, int $Type): bool
     {
         IPS_LogMessage('SmartVillaKunterbunt', 'Michi: ' . $Message);
+        return true;
     }
 }
 
