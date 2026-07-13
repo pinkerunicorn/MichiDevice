@@ -35,12 +35,14 @@ class Michi extends IPSModule
         parent::ApplyChanges();
 
         // Self-Healing: Reset all corrupted presentations
-        @IPS_SetVariableCustomPresentation($this->GetIDForIdent('Power'), []);
-        @IPS_SetVariableCustomPresentation($this->GetIDForIdent('Dimmer'), []);
-        @IPS_SetVariableCustomPresentation($this->GetIDForIdent('Model'), []);
-        @IPS_SetVariableCustomPresentation($this->GetIDForIdent('Version'), []);
-        @IPS_SetVariableCustomPresentation($this->GetIDForIdent('IP'), []);
-        @IPS_SetVariableCustomPresentation($this->GetIDForIdent('MAC'), []);
+        if (function_exists('IPS_SetVariableCustomPresentation')) {
+            IPS_SetVariableCustomPresentation($this->GetIDForIdent('Power'), []);
+            IPS_SetVariableCustomPresentation($this->GetIDForIdent('Dimmer'), []);
+            IPS_SetVariableCustomPresentation($this->GetIDForIdent('Model'), []);
+            IPS_SetVariableCustomPresentation($this->GetIDForIdent('Version'), []);
+            IPS_SetVariableCustomPresentation($this->GetIDForIdent('IP'), []);
+            IPS_SetVariableCustomPresentation($this->GetIDForIdent('MAC'), []);
+        }
 
         IPS_SetVariableCustomPresentation($this->GetIDForIdent('Power'), [
             'PRESENTATION' => VARIABLE_PRESENTATION_SWITCH,
