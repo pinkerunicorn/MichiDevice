@@ -267,11 +267,16 @@ class Michi extends IPSModuleStrict
 {
     "elements": [
         {
-            "type": "NumberSpinner",
-            "name": "UpdateInterval",
-            "caption": "Abfrage-Intervall (Sekunden, 0 = Aus)",
-            "minimum": 0,
-            "maximum": 3600
+            "type": "RowLayout",
+            "items": [
+                {
+                    "type": "NumberSpinner",
+                    "name": "UpdateInterval",
+                    "caption": "Abfrage-Intervall (Sekunden, 0 = Aus)",
+                    "minimum": 0,
+                    "maximum": 3600
+                }
+            ]
         }
     ],
     "actions": [
