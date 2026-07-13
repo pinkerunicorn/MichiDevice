@@ -4,10 +4,7 @@ declare(strict_types=1);
 
 class Michi extends IPSModuleStrict
 {
-    public function GetCompatibleParents(): string
-    {
-        return '["{3CFF0FD9-E306-41DB-9B5A-9D06D38576C3}"]';
-    }
+
     public function Create(): void{
         parent::Create();
 
