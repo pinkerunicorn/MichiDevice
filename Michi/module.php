@@ -256,10 +256,9 @@ class Michi extends IPSModule
         }
     }
 
-    protected function LogMessage(string $Message, int $Type): bool
+    protected function LogMessage($Message, $Type)
     {
         IPS_LogMessage('SmartVillaKunterbunt', 'Michi: ' . $Message);
-        return true;
     }
 }
 
