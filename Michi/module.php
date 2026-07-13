@@ -34,47 +34,29 @@ class Michi extends IPSModule
     {
         parent::ApplyChanges();
 
-        if (function_exists('IPS_SetVariableCustomPresentation')) {
-            // Self-Healing: Reset all corrupted presentations
-            @IPS_SetVariableCustomPresentation($this->GetIDForIdent('Power'), []);
-            @IPS_SetVariableCustomPresentation($this->GetIDForIdent('Dimmer'), []);
-            @IPS_SetVariableCustomPresentation($this->GetIDForIdent('Model'), []);
-            @IPS_SetVariableCustomPresentation($this->GetIDForIdent('Version'), []);
-            @IPS_SetVariableCustomPresentation($this->GetIDForIdent('IP'), []);
-            @IPS_SetVariableCustomPresentation($this->GetIDForIdent('MAC'), []);
+        // Self-Healing: Reset all corrupted presentations
+        @IPS_SetVariableCustomPresentation($this->GetIDForIdent('Power'), []);
+        @IPS_SetVariableCustomPresentation($this->GetIDForIdent('Dimmer'), []);
+        @IPS_SetVariableCustomPresentation($this->GetIDForIdent('Model'), []);
+        @IPS_SetVariableCustomPresentation($this->GetIDForIdent('Version'), []);
+        @IPS_SetVariableCustomPresentation($this->GetIDForIdent('IP'), []);
+        @IPS_SetVariableCustomPresentation($this->GetIDForIdent('MAC'), []);
 
-            if (defined('VARIABLE_PRESENTATION_SWITCH')) {
-                IPS_SetVariableCustomPresentation($this->GetIDForIdent('Power'), [
-                    'PRESENTATION' => VARIABLE_PRESENTATION_SWITCH,
-                    'ICON'         => 'Power'
-                ]);
-            } else {
-                IPS_SetVariableCustomPresentation($this->GetIDForIdent('Power'), [
-                    'ICON'         => 'Power'
-                ]);
-            }
+        IPS_SetVariableCustomPresentation($this->GetIDForIdent('Power'), [
+            'PRESENTATION' => VARIABLE_PRESENTATION_SWITCH,
+            'ICON'         => 'Power'
+        ]);
 
-            if (defined('VARIABLE_PRESENTATION_SLIDER')) {
-                IPS_SetVariableCustomPresentation($this->GetIDForIdent('Dimmer'), [
-                    'PRESENTATION' => VARIABLE_PRESENTATION_SLIDER,
-                    'ICON'         => 'Bulb',
-                    'MIN'          => 0,
-                    'MAX'          => 100,
-                    'STEP'         => 25,
-                    'SUFFIX'       => '%'
-                ]);
-            } else {
-                IPS_SetVariableCustomPresentation($this->GetIDForIdent('Dimmer'), [
-                    'ICON'         => 'Bulb',
-                    'MIN'          => 0,
-                    'MAX'          => 100,
-                    'STEP'         => 25,
-                    'SUFFIX'       => '%'
-                ]);
-            }
-            
-            // No custom PRESENTATION for strings, let Symcon use default String display
-        }
+        IPS_SetVariableCustomPresentation($this->GetIDForIdent('Dimmer'), [
+            'PRESENTATION' => VARIABLE_PRESENTATION_SLIDER,
+            'ICON'         => 'Bulb',
+            'MIN'          => 0,
+            'MAX'          => 100,
+            'STEP'         => 25,
+            'SUFFIX'       => '%'
+        ]);
+        
+        // No custom PRESENTATION for strings, let Symcon use default String display
 
         // Wir erzwingen, dass ein Parent (Client Socket) existiert
         $this->RequireParent("{3CFF0FD9-E306-41DB-9B5A-9D06D38576C3}");
