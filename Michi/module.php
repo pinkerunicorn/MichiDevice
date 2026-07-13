@@ -260,5 +260,30 @@ class Michi extends IPSModuleStrict
         IPS_LogMessage('SmartVillaKunterbunt', 'Michi: ' . $Message);
         return true;
     }
+
+    public function GetConfigurationForm(): string
+    {
+        return <<<'EOT'
+{
+    "elements": [
+        {
+            "type": "NumberSpinner",
+            "name": "UpdateInterval",
+            "caption": "Abfrage-Intervall (Sekunden, 0 = Aus)",
+            "minimum": 0,
+            "maximum": 3600
+        }
+    ],
+    "actions": [
+        {
+            "type": "Button",
+            "label": "Alle Werte aktualisieren",
+            "onClick": "MICHI_RequestStatus($id);"
+        }
+    ]
 }
+EOT;
+    }
+}
+
 
