@@ -47,12 +47,12 @@ class Michi extends IPSModuleStrict
         }
 
         IPS_SetVariableCustomPresentation($this->GetIDForIdent('Power'), [
-            'PRESENTATION' => VARIABLE_PRESENTATION_SWITCH,
+            'Presentation' => VARIABLE_PRESENTATION_SWITCH,
             'ICON'         => 'Power'
         ]);
 
         IPS_SetVariableCustomPresentation($this->GetIDForIdent('Dimmer'), [
-            'PRESENTATION' => VARIABLE_PRESENTATION_SLIDER,
+            'Presentation' => VARIABLE_PRESENTATION_SLIDER,
             'ICON'         => 'Bulb',
             'MIN'          => 0,
             'MAX'          => 100,
