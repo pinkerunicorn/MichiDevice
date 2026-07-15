@@ -136,7 +136,7 @@ class Michi extends IPSModuleStrict
         if ($parentId > 0 && IPS_GetInstance($parentId)['InstanceStatus'] == 102) {
             $json = json_encode([
                 "DataID" => "{79827379-F36E-4ADA-8A95-5F8D1DC92FA9}",
-                "Buffer" => utf8_encode($command . "!")
+                "Buffer" => $command . "!"
             ]);
             $this->SendDataToParent($json);
             $this->SendDebug("SEND", $command . "!", 0);
@@ -146,7 +146,7 @@ class Michi extends IPSModuleStrict
     public function ReceiveData(string $JSONString): string
     {
         $data = json_decode($JSONString);
-        $newData = utf8_decode($data->Buffer);
+        $newData = $data->Buffer;
         
         $lowerData = strtolower($newData);
         
