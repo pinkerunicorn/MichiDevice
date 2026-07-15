@@ -132,8 +132,8 @@ class Michi extends IPSModuleStrict
         ];
         
         foreach ($commands as $cmd) {
-            $this->SendDebug("Transmit", $cmd, 0);
-            fwrite($fp, $cmd . "\r\n");
+            $this->SendDebug("Transmit", $cmd . "!", 0);
+            fwrite($fp, $cmd . "!");
             IPS_Sleep(100);
         }
         
@@ -154,8 +154,9 @@ class Michi extends IPSModuleStrict
             return;
         }
         
-        $this->SendDebug("Transmit", $cmd, 0);
-        fwrite($fp, $cmd . "\r\n");
+        $cmd = rtrim($cmd, '!');
+        $this->SendDebug("Transmit", $cmd . "!", 0);
+        fwrite($fp, $cmd . "!");
         IPS_Sleep(100);
         
         $this->ReadResponse($fp);
