@@ -88,11 +88,11 @@ class Michi extends IPSModuleStrict
 
         // Statische Infos (Version, Modell, IP, MAC) abfragen
         $this->SendCommand("version?");
-        IPS_Sleep(200);
+        usleep(200000);
         $this->SendCommand("model?");
-        IPS_Sleep(200);
+        usleep(200000);
         $this->SendCommand("ip?");
-        IPS_Sleep(200);
+        usleep(200000);
         $this->SendCommand("mac?");
     }
 
@@ -114,7 +114,7 @@ class Michi extends IPSModuleStrict
                 break;
         }
         
-        IPS_Sleep(500);
+        usleep(500000);
         $this->RequestStatus();
     }
 
@@ -150,7 +150,7 @@ class Michi extends IPSModuleStrict
         foreach ($commands as $cmd) {
             $this->SendDebug("Transmit", $cmd . "!", 0);
             fwrite($fp, $cmd . "!");
-            IPS_Sleep(100);
+            usleep(100000);
         }
         
         $this->ReadResponse($fp);
@@ -173,7 +173,7 @@ class Michi extends IPSModuleStrict
         $cmd = rtrim($cmd, '!');
         $this->SendDebug("Transmit", $cmd . "!", 0);
         fwrite($fp, $cmd . "!");
-        IPS_Sleep(100);
+        usleep(100000);
         
         $this->ReadResponse($fp);
         fclose($fp);
@@ -190,7 +190,7 @@ class Michi extends IPSModuleStrict
             if ($chunk !== false && $chunk !== '') {
                 $response .= $chunk;
             }
-            IPS_Sleep(50);
+            usleep(50000);
         }
         
         if (!empty($response)) {
