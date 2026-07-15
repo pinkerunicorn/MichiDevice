@@ -16,10 +16,7 @@ class Michi extends IPSModuleStrict
         // Timer
         $this->RegisterTimer('UpdateTimer', 0, 'MICHI_RequestStatus($_IPS[\'TARGET\']);');
 
-        // Alte Attribute entfernen
-        if ($this->HasAttribute('ReceiveBuffer')) {
-            $this->UnregisterAttribute('ReceiveBuffer');
-        }
+
 
         // Variablen registrieren
         $this->RegisterVariableBoolean('Power', 'Power', '', 10);
