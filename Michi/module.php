@@ -58,6 +58,22 @@ class Michi extends IPSModuleStrict
             'SUFFIX'       => '%'
         ]);
 
+        IPS_SetVariableCustomPresentation($this->GetIDForIdent('Model'), [
+            'ICON' => 'Information'
+        ]);
+
+        IPS_SetVariableCustomPresentation($this->GetIDForIdent('Version'), [
+            'ICON' => 'Information'
+        ]);
+
+        IPS_SetVariableCustomPresentation($this->GetIDForIdent('IP'), [
+            'ICON' => 'Network'
+        ]);
+
+        IPS_SetVariableCustomPresentation($this->GetIDForIdent('MAC'), [
+            'ICON' => 'Network'
+        ]);
+
         // Timer setzen
         $interval = $this->ReadPropertyInteger('UpdateInterval');
         if ($interval > 0) {
