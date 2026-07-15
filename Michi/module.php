@@ -59,18 +59,22 @@ class Michi extends IPSModuleStrict
         ]);
 
         IPS_SetVariableCustomPresentation($this->GetIDForIdent('Model'), [
+            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
             'ICON' => 'Information'
         ]);
 
         IPS_SetVariableCustomPresentation($this->GetIDForIdent('Version'), [
+            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
             'ICON' => 'Information'
         ]);
 
         IPS_SetVariableCustomPresentation($this->GetIDForIdent('IP'), [
+            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
             'ICON' => 'Network'
         ]);
 
         IPS_SetVariableCustomPresentation($this->GetIDForIdent('MAC'), [
+            'PRESENTATION' => VARIABLE_PRESENTATION_VALUE_PRESENTATION,
             'ICON' => 'Network'
         ]);
 
