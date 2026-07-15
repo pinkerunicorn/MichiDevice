@@ -20,15 +20,24 @@ class Michi extends IPSModuleStrict
 
         // Variablen registrieren
         $this->RegisterVariableBoolean('Power', 'Power', '', 10);
+        IPS_SetIcon($this->GetIDForIdent('Power'), 'Power');
         $this->EnableAction('Power');
 
         $this->RegisterVariableInteger('Dimmer', 'Display Helligkeit', '', 20);
+        IPS_SetIcon($this->GetIDForIdent('Dimmer'), 'Bulb');
         $this->EnableAction('Dimmer');
 
         $this->RegisterVariableString('Model', 'Modell', '', 30);
+        IPS_SetIcon($this->GetIDForIdent('Model'), 'Information');
+        
         $this->RegisterVariableString('Version', 'Software Version', '', 40);
+        IPS_SetIcon($this->GetIDForIdent('Version'), 'Information');
+        
         $this->RegisterVariableString('IP', 'IP-Adresse', '', 50);
+        IPS_SetIcon($this->GetIDForIdent('IP'), 'Network');
+        
         $this->RegisterVariableString('MAC', 'MAC-Adresse', '', 60);
+        IPS_SetIcon($this->GetIDForIdent('MAC'), 'Network');
     }
 
     public function ApplyChanges(): void{
