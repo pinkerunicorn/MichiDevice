@@ -4,13 +4,9 @@
     "type": 3,
     "vendor": "Rotel",
     "aliases": [],
-    "parentRequirements": [
-        "{79827379-F36E-4ADA-8A95-5F8D1DC92FA9}"
-    ],
+    "parentRequirements": [],
     "childRequirements": [],
-    "implemented": [
-        "{018EF6B5-AB94-40C6-AA53-46943E824ACF}"
-    ],
+    "implemented": [],
     "prefix": "MICHI",
     "author": "Florian Graßinger",
     "url": "https://github.com/pinkerunicorn/"

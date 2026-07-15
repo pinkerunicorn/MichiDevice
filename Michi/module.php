@@ -8,14 +8,18 @@ class Michi extends IPSModuleStrict
     public function Create(): void{
         parent::Create();
 
+        // Eigenschaften
+        $this->RegisterPropertyString('Host', '');
+        $this->RegisterPropertyInteger('Port', 9596);
         $this->RegisterPropertyInteger('UpdateInterval', 60);
-
-        // Attribut für den Empfangspuffer
-        $this->RegisterAttributeString('ReceiveBuffer', '');
 
         // Timer
         $this->RegisterTimer('UpdateTimer', 0, 'MICHI_RequestStatus($_IPS[\'TARGET\']);');
-        $this->RegisterTimer('ResponseTimeout', 0, 'MICHI_HandleTimeout($_IPS[\'TARGET\']);');
+
+        // Alte Attribute entfernen
+        if ($this->HasAttribute('ReceiveBuffer')) {
+            $this->UnregisterAttribute('ReceiveBuffer');
+        }
 
         // Variablen registrieren
         $this->RegisterVariableBoolean('Power', 'Power', '', 10);
@@ -56,10 +60,6 @@ class Michi extends IPSModuleStrict
             'STEP'         => 25,
             'SUFFIX'       => '%'
         ]);
-        
-        // No custom PRESENTATION for strings, let Symcon use default String display
-
-        // Wir erzwingen, dass ein Parent (Client Socket) existiert
 
         // Timer setzen
         $interval = $this->ReadPropertyInteger('UpdateInterval');
@@ -73,120 +73,125 @@ class Michi extends IPSModuleStrict
         // Initiale Sichtbarkeit der Variablen setzen
         $this->UpdatePowerState($this->GetValue('Power'));
 
-        // Statische Infos (Version, Modell, IP, MAC) nur einmalig beim Start abfragen
-        // Der Michi antwortet darauf praktischerweise auch im Standby!
+        // Statische Infos (Version, Modell, IP, MAC) abfragen
         $this->SendCommand("version?");
+        IPS_Sleep(200);
         $this->SendCommand("model?");
+        IPS_Sleep(200);
         $this->SendCommand("ip?");
+        IPS_Sleep(200);
         $this->SendCommand("mac?");
-    }
-
-
-    private function GetConnectionID(): int
-    {
-        $instance = IPS_GetInstance($this->InstanceID);
-        return $instance['ConnectionID'];
     }
 
     public function RequestAction(string $Ident, $Value): void{
         switch ($Ident) {
             case 'Power':
                 if ($Value) {
-                    $this->SendCommand("power_on");
+                    $this->SendCommand("power_on!");
                 } else {
-                    $this->SendCommand("power_off");
+                    $this->SendCommand("power_off!");
                 }
                 $this->UpdatePowerState($Value);
                 break;
             case 'Dimmer':
                 // Google Home liefert 0-100%. Michi erwartet 0 (am hellsten) bis 4 (am dunkelsten).
-                // 100% -> 0, 75% -> 1, 50% -> 2, 25% -> 3, 0% -> 4
                 $val = 4 - (int)round((max(0, min(100, (int)$Value))) / 25);
-                $this->SendCommand("dimmer_" . $val);
+                $this->SendCommand("dimmer_" . $val . "!");
                 $this->SetValue($Ident, $Value);
                 break;
         }
+        
+        IPS_Sleep(500);
+        $this->RequestStatus();
     }
 
     public function RequestStatus(): void
     {
-        $parentId = $this->GetConnectionID();
-        if ($parentId > 0) {
-            $status = IPS_GetInstance($parentId)['InstanceStatus'];
-            if ($status != 102) { // 102 = IS_ACTIVE
-                // Socket ist getrennt (Michi ist vermutlich im Deep Standby oder stromlos)
-                if ($this->GetValue('Power')) {
-                    $this->SetValue('Power', false);
+        $host = $this->ReadPropertyString('Host');
+        $port = $this->ReadPropertyInteger('Port');
+
+        if (empty($host)) {
+            $this->SendDebug("Log", "RequestStatus abgebrochen: Keine IP-Adresse (Host) konfiguriert!", 0);
+            return;
+        }
+
+        $this->SendDebug("Log", "Verbinde mit Michi $host:$port...", 0);
+        
+        $fp = @fsockopen($host, $port, $errno, $errstr, 2);
+        if (!$fp) {
+            $this->SendDebug("Log", "Verbindung fehlgeschlagen: $errstr ($errno)", 0);
+            
+            // Michi ist vermutlich im Standby oder stromlos
+            if ($this->GetValue('Power')) {
+                $this->UpdatePowerState(false);
+                $this->SendDebug("TIMEOUT", "Keine Verbindung möglich. Setze Power auf Aus.", 0);
+            }
+            return;
+        }
+        
+        $commands = [
+            'dimmer?',
+            'source?'
+        ];
+        
+        foreach ($commands as $cmd) {
+            $this->SendDebug("Transmit", $cmd, 0);
+            fwrite($fp, $cmd . "\r\n");
+            IPS_Sleep(100);
+        }
+        
+        $this->ReadResponse($fp);
+        fclose($fp);
+    }
+
+    private function SendCommand(string $cmd): void
+    {
+        $host = $this->ReadPropertyString('Host');
+        $port = $this->ReadPropertyInteger('Port');
+
+        if (empty($host)) return;
+
+        $fp = @fsockopen($host, $port, $errno, $errstr, 2);
+        if (!$fp) {
+            $this->SendDebug("Log", "Verbindung fehlgeschlagen: $errstr ($errno)", 0);
+            return;
+        }
+        
+        $this->SendDebug("Transmit", $cmd, 0);
+        fwrite($fp, $cmd . "\r\n");
+        IPS_Sleep(100);
+        
+        $this->ReadResponse($fp);
+        fclose($fp);
+    }
+
+    private function ReadResponse($fp): void
+    {
+        stream_set_blocking($fp, false);
+        $response = "";
+        $startTime = microtime(true);
+        
+        while (microtime(true) - $startTime < 1.0) {
+            $chunk = fread($fp, 1024);
+            if ($chunk !== false && $chunk !== '') {
+                $response .= $chunk;
+            }
+            IPS_Sleep(50);
+        }
+        
+        if (!empty($response)) {
+            $this->SendDebug("Receive", $response, 0);
+            $parts = explode('$', $response);
+            foreach ($parts as $part) {
+                $part = trim($part);
+                if (!empty($part)) {
+                    $this->ParseLine($part);
                 }
-                return;
             }
         }
-
-        // Starte Timeout-Timer (3 Sekunden). Wenn der Michi aus ist, ignoriert er
-        // alle folgenden Befehle. (power? senden wir absichtlich nicht, da er hier lügt)
-        $this->SetTimerInterval('ResponseTimeout', 3000);
-
-        $this->SendCommand("dimmer?");
-        $this->SendCommand("source?");
     }
 
-    private function SendCommand(string $command): void
-    {
-        $parentId = $this->GetConnectionID();
-        if ($parentId > 0 && IPS_GetInstance($parentId)['InstanceStatus'] == 102) {
-            $json = json_encode([
-                "DataID" => "{79827379-F36E-4ADA-8A95-5F8D1DC92FA9}",
-                "Buffer" => $command . "!"
-            ]);
-            $this->SendDataToParent($json);
-            $this->SendDebug("SEND", $command . "!", 0);
-        }
-    }
-
-    public function ReceiveData(string $JSONString): string
-    {
-        $data = json_decode($JSONString);
-        $newData = $data->Buffer;
-        
-        if (preg_match('/^[0-9A-Fa-f]+$/', $newData) && strlen($newData) % 2 === 0) {
-            $newData = hex2bin($newData);
-        }
-        
-        $lowerData = strtolower($newData);
-        
-        // Wenn wir dimmer oder source empfangen, ist der Michi definitiv an!
-        if (strpos($lowerData, 'dimmer=') !== false || strpos($lowerData, 'source=') !== false) {
-            $this->SetTimerInterval('ResponseTimeout', 0);
-            
-            // Wenn er auf unsere Fragen antwortet, ist er definitiv an!
-            if (!$this->GetValue('Power')) {
-                $this->UpdatePowerState(true);
-            }
-        }
-
-        $buffer = $this->ReadAttributeString('ReceiveBuffer');
-        $buffer .= $newData;
-        
-        $this->SendDebug("RECV_RAW", $newData, 0);
-
-        // Nachrichten extrahieren (Ende-Zeichen ist $)
-        $pos = strpos($buffer, '$');
-        while ($pos !== false) {
-            $msg = substr($buffer, 0, $pos);
-            $buffer = substr($buffer, $pos + 1);
-            
-            $this->ProcessMessage($msg);
-            
-            $pos = strpos($buffer, '$');
-        }
-
-        // Rest im Puffer speichern
-        $this->WriteAttributeString('ReceiveBuffer', $buffer);
-    
-        return "";
-    }
-
-    private function ProcessMessage(string $msg): void
+    private function ParseLine(string $msg): void
     {
         $this->SendDebug("MESSAGE", $msg, 0);
 
@@ -196,8 +201,16 @@ class Michi extends IPSModuleStrict
 
         $key = trim($parts[0]);
         $value = trim($parts[1]);
+        
+        $lowerKey = strtolower($key);
+        
+        if ($lowerKey === 'dimmer' || $lowerKey === 'source') {
+            if (!$this->GetValue('Power')) {
+                $this->UpdatePowerState(true);
+            }
+        }
 
-        switch (strtolower($key)) {
+        switch ($lowerKey) {
             case 'power':
                 if ($value === 'on') {
                     $this->UpdatePowerState(true);
@@ -222,18 +235,6 @@ class Michi extends IPSModuleStrict
             case 'mac':
                 $this->SetValue('MAC', $value);
                 break;
-        }
-    }
-
-    public function HandleTimeout(): void
-    {
-        // Der Timer hat ausgelöst, was bedeutet, dass der Michi auf unsere Anfrage
-        // nicht geantwortet hat. Er ist im Standby und ignoriert Befehle.
-        $this->SetTimerInterval('ResponseTimeout', 0);
-        
-        if ($this->GetValue('Power')) {
-            $this->UpdatePowerState(false);
-            $this->SendDebug("TIMEOUT", "Keine Antwort erhalten. Setze Power auf Aus.", 0);
         }
     }
 
@@ -274,6 +275,16 @@ class Michi extends IPSModuleStrict
             "type": "RowLayout",
             "items": [
                 {
+                    "type": "ValidationTextBox",
+                    "name": "Host",
+                    "caption": "IP-Adresse"
+                },
+                {
+                    "type": "NumberSpinner",
+                    "name": "Port",
+                    "caption": "Port"
+                },
+                {
                     "type": "NumberSpinner",
                     "name": "UpdateInterval",
                     "caption": "Abfrage-Intervall (Sekunden, 0 = Aus)",
@@ -294,5 +305,3 @@ class Michi extends IPSModuleStrict
 EOT;
     }
 }
-
-
