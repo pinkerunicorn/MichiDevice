@@ -148,6 +148,10 @@ class Michi extends IPSModuleStrict
         $data = json_decode($JSONString);
         $newData = $data->Buffer;
         
+        if (preg_match('/^[0-9A-Fa-f]+$/', $newData) && strlen($newData) % 2 === 0) {
+            $newData = hex2bin($newData);
+        }
+        
         $lowerData = strtolower($newData);
         
         // Wenn wir dimmer oder source empfangen, ist der Michi definitiv an!
