@@ -1,13 +1,21 @@
 {
-    "id": "{DE13D2F7-C1E6-49AB-A633-8FE587BCE6D2}",
-    "name": "Michi",
-    "type": 3,
-    "vendor": "Rotel",
-    "aliases": [],
-    "parentRequirements": [],
-    "childRequirements": [],
-    "implemented": [],
-    "prefix": "MICHI",
-    "author": "Florian Graßinger",
-    "url": "https://github.com/pinkerunicorn/"
+    "id":  "{DE13D2F7-C1E6-49AB-A633-8FE587BCE6D2}",
+    "name":  "Michi",
+    "type":  3,
+    "vendor":  "Rotel",
+    "aliases":  [
+
+                ],
+    "parentRequirements":  [
+
+                           ],
+    "childRequirements":  [
+
+                          ],
+    "implemented":  [
+
+                    ],
+    "prefix":  "MICHI",
+    "author":  "Florian GraÃŸinger",
+    "url":  "https://github.com/pinkerunicorn/"
 }
