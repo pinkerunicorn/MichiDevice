@@ -299,6 +299,10 @@ class Michi extends IPSModuleStrict
 {
     "elements": [
         {
+            "type": "Label",
+            "label": "Hallo! Hier konfigurierst du die Verbindung zu deinem Michi-Gerät. Trage einfach die IP-Adresse und den passenden Port ein."
+        },
+        {
             "type": "RowLayout",
             "items": [
                 {
@@ -310,15 +314,19 @@ class Michi extends IPSModuleStrict
                     "type": "NumberSpinner",
                     "name": "Port",
                     "caption": "Port"
-                },
-                {
-                    "type": "NumberSpinner",
-                    "name": "UpdateInterval",
-                    "caption": "Abfrage-Intervall (Sekunden, 0 = Aus)",
-                    "minimum": 0,
-                    "maximum": 3600
                 }
             ]
+        },
+        {
+            "type": "Label",
+            "label": "Wie oft soll ich bei Michi nach dem aktuellen Status fragen? Stell hier das Intervall in Sekunden ein. Wenn du 0 einträgst, frage ich gar nicht mehr automatisch nach."
+        },
+        {
+            "type": "NumberSpinner",
+            "name": "UpdateInterval",
+            "caption": "Abfrage-Intervall (Sekunden)",
+            "minimum": 0,
+            "maximum": 3600
         }
     ],
     "actions": [
